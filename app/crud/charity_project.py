@@ -34,6 +34,22 @@ class CRUDCharityProject(CRUDBase):
         )
         return available_projects.scalars().all()
 
+    async def get_projects_by_completion_rate(
+        self,
+        session: AsyncSession
+    ) -> Optional[list[dict[str, str]]]:
+        available_projects = await session.execute(
+            select(CharityProject).where(CharityProject.fully_invested)
+        )
+        list_projects = available_projects.scalars().all()
+        projects = []
+        for obj in list_projects:
+            projects.append({
+                'name': obj.name,
+                'delta': obj.close_date - obj.create_date,
+                'description': obj.description})
+        return sorted(projects, key=lambda x: x['delta'])
+
 
 charity_project_crud = CRUDCharityProject(CharityProject)
 
